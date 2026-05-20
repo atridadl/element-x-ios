@@ -48,11 +48,12 @@ struct SpaceScreenViewState: BindableState {
     }
     
     var visibleRooms: [SpaceServiceRoom] {
-        if editMode == .inactive {
+        let visibleRooms = if editMode == .inactive {
             rooms
         } else {
             rooms.filter { !$0.isSpace && !editModeRemovedIDs.contains($0.id) }
         }
+        return visibleRooms.removingDuplicateIDs()
     }
     
     var isSpaceManagementEnabled: Bool {
@@ -61,6 +62,16 @@ struct SpaceScreenViewState: BindableState {
     
     func isSpaceIDSelected(_ spaceID: String) -> Bool {
         selectedSpaceRoomID == spaceID || editModeSelectedIDs.contains(spaceID)
+    }
+}
+
+// Guard to prevent duplicate room IDs from being rendered
+private extension [SpaceServiceRoom] {
+    func removingDuplicateIDs() -> [SpaceServiceRoom] {
+        var seenRoomIDs = Set<String>()
+        return filter { spaceServiceRoom in
+            seenRoomIDs.insert(spaceServiceRoom.id).inserted
+        }
     }
 }
 
